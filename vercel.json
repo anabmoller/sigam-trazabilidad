@@ -4,6 +4,8 @@
   "routes": [
     { "src": "/movimiento", "dest": "/movimiento/index.html" },
     { "src": "/movimiento/(.*)", "dest": "/movimiento/index.html" },
+    { "src": "/checkpoint", "dest": "/checkpoint/index.html" },
+    { "src": "/checkpoint/", "dest": "/checkpoint/index.html" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
