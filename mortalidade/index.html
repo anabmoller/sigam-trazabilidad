@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230A1628'/%3E%3Cpath d='M16 5L27 11V21L16 27L5 21V11L16 5Z' stroke='%23F5B301' stroke-width='2.2' fill='none'/%3E%3Cpath d='M16 15L21 12.5M16 15V20M16 15L11 12.5' stroke='%23F5B301' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0A1628">
+<title>SIGAM · Mortalidade</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{
+  --navy:#0A1628;--navy2:#111f38;--burgundy:#7B1E2E;--mustard:#F5B301;
+  --surface:#f5f4f1;--surface2:#eceae4;--white:#fff;
+  --border:rgba(10,22,40,0.12);--border2:rgba(10,22,40,0.22);
+  --text:#0A1628;--text2:#4a5568;--text3:#8a95a3;
+  --green:#1a6b3c;--green-bg:#e6f4ec;
+  --red:#8b1c1c;--red-bg:#fceaea;
+  --amber:#7a4a00;--amber-bg:#fef3d0;
+  --blue:#0c447c;--blue-bg:#e6f1fb;
+  --r:10px;--rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Outfit',sans-serif;background:var(--surface);color:var(--text);font-size:15px;display:flex;flex-direction:column}
+
+/* TOPBAR */
+.topbar{background:var(--navy);height:52px;display:flex;align-items:center;padding:0 1rem;gap:10px;flex-shrink:0;z-index:50}
+.logo-mark{width:28px;height:28px;border:1.5px solid var(--mustard);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.app-name{font-family:'DM Serif Display',serif;color:#fff;font-size:16px}
+.app-name span{color:var(--mustard)}
+.mod-badge{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:rgba(245,179,1,.15);color:var(--mustard);padding:3px 9px;border-radius:20px;border:1px solid rgba(245,179,1,.3)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.sync-indicator{font-size:11px;font-family:'JetBrains Mono',monospace;color:rgba(255,255,255,0.45);display:flex;align-items:center;gap:5px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#4ade80}
+.sync-dot.offline{background:#f87171}
+.sync-dot.pending{background:var(--mustard)}
+
+/* SCROLL AREA */
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1rem;padding-bottom:5rem}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;margin-bottom:.85rem}
+.card-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+
+/* FIELDS */
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px;letter-spacing:.02em}
+input[type=text],input[type=date],input[type=time],select,textarea{
+  width:100%;border:1px solid var(--border2);border-radius:var(--rs);
+  padding:0 12px;height:42px;font-family:'Outfit',sans-serif;font-size:14px;
+  color:var(--text);background:var(--surface);outline:none;
+  transition:border-color .15s,background .15s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--navy);background:var(--white)}
+textarea{height:auto;min-height:70px;padding:10px 12px;resize:none;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* GPS */
+.gps-row{display:flex;gap:8px;align-items:flex-end}
+.gps-row input{flex:1}
+.gps-btn{height:42px;padding:0 14px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--surface);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;color:var(--navy);cursor:pointer;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.gps-btn:hover{background:var(--surface2);border-color:var(--navy)}
+.gps-btn:active{transform:scale(0.97)}
+.gps-btn svg{width:14px;height:14px}
+.gps-status{font-size:11px;margin-top:4px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.gps-status.ok{color:var(--green)}
+.gps-status.err{color:var(--red)}
+
+/* ID TABS */
+.id-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.id-tab{font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;transition:all .15s}
+.id-tab.active{background:var(--navy);color:var(--mustard);border-color:var(--navy)}
+.rfid-scan-btn{width:100%;height:52px;border-radius:var(--rs);border:1.5px dashed var(--border2);background:var(--surface);font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+.rfid-scan-btn:hover{border-color:var(--navy);color:var(--navy)}
+.rfid-scan-btn svg{width:18px;height:18px}
+
+/* FOTOS */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.photo-thumb{aspect-ratio:1;border-radius:var(--rs);overflow:hidden;position:relative;background:var(--surface2);border:1px solid var(--border)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.photo-thumb .ph-label{position:absolute;bottom:0;left:0;right:0;background:rgba(10,22,40,.7);color:#fff;font-size:9px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:3px 5px;text-align:center}
+.photo-thumb .ph-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(139,28,28,.85);border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.photo-add{aspect-ratio:1;border-radius:var(--rs);border:1.5px dashed var(--border2);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:all .15s}
+.photo-add:hover{border-color:var(--navy);background:var(--white)}
+.photo-add svg{width:22px;height:22px;color:var(--text3)}
+.photo-add span{font-size:10px;color:var(--text3);font-weight:500}
+input[type=file]{display:none}
+
+/* CAUSAS */
+.causa-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.causa-btn{padding:8px 10px;border-radius:var(--rs);border:1px solid var(--border2);background:none;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;text-align:left;transition:all .15s;line-height:1.3}
+.causa-btn:hover{border-color:var(--navy);color:var(--navy)}
+.causa-btn.active{background:var(--red-bg);border-color:#d9a0a0;color:var(--red)}
+
+/* PILLS */
+.pill{display:inline-block;font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px}
+.pill-ok{background:var(--green-bg);color:var(--green)}
+.pill-pending{background:var(--amber-bg);color:var(--amber)}
+.pill-err{background:var(--red-bg);color:var(--red)}
+.pill-sync{background:var(--blue-bg);color:var(--blue)}
+
+/* SUBMIT */
+.submit-bar{position:fixed;bottom:0;left:0;right:0;padding:1rem;background:rgba(245,244,241,.95);backdrop-filter:blur(8px);border-top:1px solid var(--border);z-index:40}
+.btn-submit{width:100%;height:50px;border-radius:var(--rs);border:none;background:var(--navy);color:var(--mustard);font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+.btn-submit:hover{background:var(--navy2)}
+.btn-submit:active{transform:scale(0.98)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.btn-submit svg{width:18px;height:18px}
+
+/* QUEUE */
+.queue-entry{border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px}
+.queue-entry:last-child{margin-bottom:0}
+.queue-icon{width:36px;height:36px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.queue-body{flex:1;min-width:0}
+.queue-id{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;margin-bottom:2px}
+.queue-meta{font-size:11px;color:var(--text3)}
+.queue-actions{display:flex;gap:6px;margin-top:6px}
+.btn-sm{font-size:11px;padding:3px 10px;height:26px;border-radius:20px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer}
+.btn-sm:hover{background:var(--surface2)}
+.btn-sm.danger{color:var(--red);border-color:#d9a0a0}
+
+/* TABS NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:45}
+.nav-btn{flex:1;height:54px;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text3);font-family:'Outfit',sans-serif;font-size:10px;font-weight:500;letter-spacing:.04em;transition:color .15s}
+.nav-btn.active{color:var(--navy)}
+.nav-btn svg{width:20px;height:20px}
+.nav-badge{position:absolute;top:8px;right:calc(50% - 18px);background:var(--burgundy);color:#fff;font-size:9px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* PANEL */
+.panel{display:none}
+.panel.active{display:block}
+
+/* TOAST */
+.toast{position:fixed;top:62px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--navy);color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* EMPTY */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:13px}
+.empty svg{width:36px;height:36px;margin:0 auto 10px;display:block;opacity:.35}
+
+@media(min-width:600px){
+  .scroll-area{max-width:520px;margin:0 auto}
+  .submit-bar{max-width:520px;left:50%;transform:translateX(-50%);border-radius:var(--r) var(--r) 0 0}
+  .bottom-nav{max-width:520px;left:50%;transform:translateX(-50%);border-radius:var(--r) var(--r) 0 0}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-mark">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="#F5B301" stroke-width="1.3" fill="none"/>
+      <path d="M8 7.5L11 6M8 7.5V11M8 7.5L5 6" stroke="#F5B301" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <span class="app-name">SIG<span>AM</span></span>
+  <span class="mod-badge">Mortalidade</span>
+  <div class="topbar-right">
+    <div class="sync-indicator">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">online</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PANEL: NOVO REGISTRO -->
+<div class="panel active scroll-area" id="panel-novo" style="padding-bottom:7rem">
+
+  <!-- Identificação -->
+  <div class="card">
+    <div class="card-title">Identificação do animal</div>
+    <div class="id-tabs">
+      <button class="id-tab active" onclick="setIdMode('manual',this)">Manual</button>
+      <button class="id-tab" onclick="setIdMode('rfid',this)">RFID</button>
+      <button class="id-tab" onclick="setIdMode('foto',this)">Foto botón</button>
+      <button class="id-tab" onclick="setIdMode('sem',this)">Sem ID</button>
+    </div>
+    <div id="id-manual">
+      <div class="field">
+        <label>ID / Botón del animal</label>
+        <input type="text" id="animal-id" placeholder="Ex: 982000123456789 · 600001234 · BRI-0045" style="font-family:'JetBrains Mono',monospace;font-size:13px">
+      </div>
+    </div>
+    <div id="id-rfid" style="display:none">
+      <button class="rfid-scan-btn" onclick="scanRFID()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11h2v2H7zM11 11h2v2h-2zM15 11h2v2h-2z"/></svg>
+        Aproximar leitor RFID
+      </button>
+      <div class="field" style="margin-top:10px">
+        <label>ID capturado</label>
+        <input type="text" id="rfid-result" placeholder="Aguardando leitura..." readonly style="font-family:'JetBrains Mono',monospace;font-size:13px;background:#f9f9f9">
+      </div>
+    </div>
+    <div id="id-foto" style="display:none">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Tire uma foto do botón — o ID será inserido manualmente após identificação visual.</p>
+      <div class="field">
+        <label>ID identificado na foto</label>
+        <input type="text" id="foto-id" placeholder="Digite o ID após ver a foto" style="font-family:'JetBrains Mono',monospace;font-size:13px">
+      </div>
+    </div>
+    <div id="id-sem" style="display:none">
+      <div style="background:var(--amber-bg);border-radius:var(--rs);padding:10px 12px;font-size:13px;color:var(--amber)">
+        Animal sem identificação. Descreva características físicas nas observações.
+      </div>
+    </div>
+  </div>
+
+  <!-- Establecimiento -->
+  <div class="card">
+    <div class="card-title">Establecimiento e responsável</div>
+    <div class="field">
+      <label>Establecimiento</label>
+      <select id="estab">
+        <option value="">Seleccionar...</option>
+        <option>Ypoti</option>
+        <option>Ypoti 2</option>
+        <option>Cerro Memby</option>
+        <option>Santa Clara</option>
+        <option>Lusipar</option>
+        <option>Santa Maria da Serra</option>
+        <option>Cielo Azul</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Notificado por</label>
+      <input type="text" id="notificado" placeholder="Nome do capataz / campeiro">
+    </div>
+  </div>
+
+  <!-- Data / hora / GPS -->
+  <div class="card">
+    <div class="card-title">Data, hora e localização</div>
+    <div class="grid2" style="margin-bottom:10px">
+      <div class="field" style="margin-bottom:0">
+        <label>Data</label>
+        <input type="date" id="mort-date">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Hora</label>
+        <input type="time" id="mort-time">
+      </div>
+    </div>
+    <div class="field">
+      <label>Coordenadas GPS</label>
+      <div class="gps-row">
+        <input type="text" id="gps-coords" placeholder="Lat, Lon" readonly style="font-family:'JetBrains Mono',monospace;font-size:12px">
+        <button class="gps-btn" onclick="captureGPS()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="9" stroke-dasharray="2 3"/></svg>
+          Capturar
+        </button>
+      </div>
+      <div class="gps-status" id="gps-status">Toque em Capturar para obter localização</div>
+    </div>
+    <div class="field" style="margin-bottom:0">
+      <label>Setor / potreiro (opcional)</label>
+      <input type="text" id="setor" placeholder="Ex: Potreiro 4 Norte">
+    </div>
+  </div>
+
+  <!-- Causa mortis -->
+  <div class="card">
+    <div class="card-title">Causa mortis</div>
+    <div class="causa-grid" id="causa-grid">
+      <button class="causa-btn" onclick="selectCausa(this,'Doença respiratória')">Doença respiratória</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Doença digestiva')">Doença digestiva</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Carbúnculo / Ántrax')">Carbúnculo / Ántrax</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Acidente / trauma')">Acidente / trauma</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Predador')">Predador</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Intoxicação / planta')">Intoxicação / planta</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Parto / distocia')">Parto / distocia</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Desnutrição')">Desnutrição</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Parasitose')">Parasitose</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Indeterminada')">Indeterminada</button>
+      <button class="causa-btn" onclick="selectCausa(this,'Outra')">Outra</button>
+    </div>
+    <div class="field" style="margin-top:10px;margin-bottom:0" id="causa-outra-wrap" style="display:none">
+      <label>Especificar causa</label>
+      <input type="text" id="causa-outra" placeholder="Descrever...">
+    </div>
+  </div>
+
+  <!-- Fotos -->
+  <div class="card">
+    <div class="card-title">Fotos da ocorrência</div>
+    <div class="photo-grid" id="photo-grid">
+      <div class="photo-add" onclick="document.getElementById('photo-input').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13" r="3"/><path d="M8 7l1.5-2.5h5L16 7"/></svg>
+        <span>Adicionar</span>
+      </div>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" multiple onchange="handlePhotos(this)">
+    <div style="font-size:11px;color:var(--text3)">Recomendado: animal completo · botón / caravana · contexto</div>
+  </div>
+
+  <!-- Observações -->
+  <div class="card">
+    <div class="card-title">Observações</div>
+    <textarea id="obs" placeholder="Condição do animal, sinais clínicos, outras informações relevantes..."></textarea>
+  </div>
+
+</div>
+
+<!-- PANEL: FILA / HISTÓRICO -->
+<div class="panel scroll-area" id="panel-fila" style="padding-bottom:5rem">
+  <div id="queue-list"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav" id="bottom-nav">
+  <button class="nav-btn active" id="nav-novo" onclick="switchPanel('novo',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+    Nuevo
+  </button>
+  <button class="nav-btn" id="nav-fila" onclick="switchPanel('fila',this)" style="position:relative">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/></svg>
+    Registros
+    <div class="nav-badge" id="queue-badge" style="display:none">0</div>
+  </button>
+</div>
+
+<!-- SUBMIT BAR (only on novo) -->
+<div class="submit-bar" id="submit-bar">
+  <button class="btn-submit" onclick="submitRegistro()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12l5 5L20 7"/></svg>
+    Registrar ocorrência
+  </button>
+</div>
+
+<script>
+var state = {
+  idMode: 'manual',
+  causa: null,
+  photos: [],
+  gps: null,
+  queue: JSON.parse(localStorage.getItem('sigam_mort_queue') || '[]')
+};
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+(function init(){
+  var now = new Date();
+  document.getElementById('mort-date').value = now.toISOString().slice(0,10);
+  document.getElementById('mort-time').value = now.toTimeString().slice(0,5);
+  updateOnlineStatus();
+  renderQueue();
+  updateBadge();
+})();
+
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+function updateOnlineStatus(){
+  var online = navigator.onLine;
+  document.getElementById('sync-dot').className = 'sync-dot' + (online ? '' : ' offline');
+  document.getElementById('sync-label').textContent = online ? 'online' : 'offline';
+  if(online) trySyncQueue();
+}
+
+// ── PANEL SWITCH ──────────────────────────────────────────────────────────
+function switchPanel(name, btn){
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('submit-bar').style.display = name === 'novo' ? '' : 'none';
+  if(name === 'fila') renderQueue();
+}
+
+// ── ID MODE ───────────────────────────────────────────────────────────────
+function setIdMode(mode, btn){
+  state.idMode = mode;
+  document.querySelectorAll('.id-tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  ['manual','rfid','foto','sem'].forEach(function(m){
+    document.getElementById('id-'+m).style.display = m === mode ? '' : 'none';
+  });
+}
+
+function scanRFID(){
+  toast('Simulando leitura RFID...');
+  setTimeout(function(){
+    document.getElementById('rfid-result').value = '982' + Math.floor(Math.random()*1e12).toString().padStart(12,'0');
+    toast('RFID capturado');
+  }, 1200);
+}
+
+// ── GPS ───────────────────────────────────────────────────────────────────
+function captureGPS(){
+  var st = document.getElementById('gps-status');
+  st.className = 'gps-status';
+  st.textContent = 'Obtendo localização...';
+  if(!navigator.geolocation){ st.className='gps-status err'; st.textContent='GPS não disponível neste dispositivo'; return; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat = pos.coords.latitude.toFixed(6);
+    var lon = pos.coords.longitude.toFixed(6);
+    var acc = Math.round(pos.coords.accuracy);
+    state.gps = {lat: parseFloat(lat), lon: parseFloat(lon), acc: acc};
+    document.getElementById('gps-coords').value = lat + ', ' + lon;
+    st.className = 'gps-status ok';
+    st.textContent = 'Precisão: ±' + acc + 'm';
+  }, function(err){
+    st.className = 'gps-status err';
+    st.textContent = 'Erro: ' + err.message;
+  }, {enableHighAccuracy:true, timeout:15000});
+}
+
+// ── CAUSA ─────────────────────────────────────────────────────────────────
+function selectCausa(btn, causa){
+  document.querySelectorAll('.causa-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  state.causa = causa;
+  var wrap = document.getElementById('causa-outra-wrap');
+  if(causa === 'Outra'){ wrap.style.display = ''; }
+  else { wrap.style.display = 'none'; }
+}
+
+// ── FOTOS ─────────────────────────────────────────────────────────────────
+var photoLabels = ['Animal completo','Botón / caravana','Contexto','Extra'];
+
+function handlePhotos(input){
+  var files = Array.from(input.files);
+  files.forEach(function(file){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      state.photos.push({data: e.target.result, name: file.name, ts: Date.now()});
+      renderPhotoGrid();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function renderPhotoGrid(){
+  var grid = document.getElementById('photo-grid');
+  grid.innerHTML = '';
+  state.photos.forEach(function(p, i){
+    var div = document.createElement('div');
+    div.className = 'photo-thumb';
+    div.innerHTML = '<img src="'+p.data+'" alt="">'
+      +'<div class="ph-label">'+(photoLabels[i]||'Foto '+(i+1))+'</div>'
+      +'<button class="ph-del" onclick="removePhoto('+i+')">×</button>';
+    grid.appendChild(div);
+  });
+  if(state.photos.length < 6){
+    var add = document.createElement('div');
+    add.className = 'photo-add';
+    add.onclick = function(){ document.getElementById('photo-input').click(); };
+    add.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13" r="3"/><path d="M8 7l1.5-2.5h5L16 7"/></svg><span>Adicionar</span>';
+    grid.appendChild(add);
+  }
+}
+
+function removePhoto(i){
+  state.photos.splice(i,1);
+  renderPhotoGrid();
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────
+function getAnimalId(){
+  if(state.idMode === 'manual') return document.getElementById('animal-id').value.trim().toUpperCase();
+  if(state.idMode === 'rfid') return document.getElementById('rfid-result').value.trim().toUpperCase();
+  if(state.idMode === 'foto') return document.getElementById('foto-id').value.trim().toUpperCase();
+  return 'SEM_ID_' + Date.now();
+}
+
+function submitRegistro(){
+  var animalId = getAnimalId();
+  var estab = document.getElementById('estab').value;
+  var notif = document.getElementById('notificado').value.trim();
+  var date = document.getElementById('mort-date').value;
+  var time = document.getElementById('mort-time').value;
+
+  if(!estab){ toast('Selecione o establecimiento'); return; }
+  if(!state.causa){ toast('Selecione a causa mortis'); return; }
+  if(!date){ toast('Informe a data'); return; }
+
+  var causa = state.causa === 'Outra'
+    ? (document.getElementById('causa-outra').value.trim() || 'Outra')
+    : state.causa;
+
+  var registro = {
+    id: 'MORT-' + Date.now(),
+    animal_id: animalId || 'SEM_ID',
+    id_mode: state.idMode,
+    estab: estab,
+    notificado: notif,
+    date: date,
+    time: time,
+    gps: state.gps,
+    setor: document.getElementById('setor').value.trim(),
+    causa: causa,
+    obs: document.getElementById('obs').value.trim(),
+    photos_count: state.photos.length,
+    photos:state.photos,
+    status: 'pending',
+    created_at: new Date().toISOString()
+  };
+
+  state.queue.unshift(registro);
+  saveQueue();
+  updateBadge();
+  toast('Registro salvo' + (navigator.onLine ? ' — sincronizando...' : ' offline'));
+  resetForm();
+  if(navigator.onLine) trySyncQueue();
+}
+
+function resetForm(){
+  document.getElementById('animal-id').value = '';
+  document.getElementById('rfid-result').value = '';
+  document.getElementById('foto-id').value = '';
+  document.getElementById('estab').value = '';
+  document.getElementById('notificado').value = '';
+  document.getElementById('setor').value = '';
+  document.getElementById('obs').value = '';
+  document.getElementById('gps-coords').value = '';
+  document.getElementById('gps-status').textContent = 'Toque em Capturar para obter localização';
+  document.getElementById('gps-status').className = 'gps-status';
+  state.gps = null;
+  state.causa = null;
+  state.photos = [];
+  state.idMode = 'manual';
+  document.querySelectorAll('.causa-btn').forEach(function(b){ b.classList.remove('active'); });
+  setIdMode('manual', document.querySelector('.id-tab'));
+  renderPhotoGrid();
+  var now = new Date();
+  document.getElementById('mort-date').value = now.toISOString().slice(0,10);
+  document.getElementById('mort-time').value = now.toTimeString().slice(0,5);
+}
+
+// ── QUEUE ─────────────────────────────────────────────────────────────────
+function saveQueue(){
+  var toSave = state.queue.map(function(r){
+    return Object.assign({}, r, {photos: r.photos ? r.photos.map(function(p){ return {data: p.data.slice(0,50)+'...truncated', name: p.name}; }) : []});
+  });
+  try{ localStorage.setItem('sigam_mort_queue', JSON.stringify(state.queue)); }
+  catch(e){ console.warn('Storage full, saving without photos'); }
+}
+
+function updateBadge(){
+  var pending = state.queue.filter(function(r){ return r.status === 'pending'; }).length;
+  var badge = document.getElementById('queue-badge');
+  if(pending > 0){ badge.style.display = 'flex'; badge.textContent = pending; }
+  else { badge.style.display = 'none'; }
+}
+
+function renderQueue(){
+  var el = document.getElementById('queue-list');
+  if(!state.queue.length){
+    el.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/></svg>Nenhum registro ainda</div>';
+    return;
+  }
+  el.innerHTML = '';
+  state.queue.forEach(function(r, i){
+    var statusPill = r.status === 'synced'
+      ? '<span class="pill pill-ok">Sincronizado</span>'
+      : r.status === 'error'
+      ? '<span class="pill pill-err">Erro sync</span>'
+      : '<span class="pill pill-pending">Pendente</span>';
+    var div = document.createElement('div');
+    div.className = 'queue-entry';
+    div.innerHTML =
+      '<div class="queue-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a95a3" stroke-width="1.5" stroke-linecap="round"><path d="M12 9v4M12 17h.01M12 3L2 20h20L12 3z"/></svg></div>'
+      +'<div class="queue-body">'
+        +'<div class="queue-id">' + r.animal_id + ' · ' + r.estab + '</div>'
+        +'<div class="queue-meta">' + r.date + ' ' + r.time + ' · ' + r.causa
+          + (r.gps ? ' · GPS ✓' : '') + (r.photos_count ? ' · '+r.photos_count+' foto(s)' : '') + '</div>'
+        +'<div style="margin-top:5px">' + statusPill + '</div>'
+        +'<div class="queue-actions">'
+          +(r.status !== 'synced' ? '<button class="btn-sm" onclick="retrySingle('+i+')">Tentar sync</button>' : '')
+          +'<button class="btn-sm danger" onclick="deleteEntry('+i+')">Remover</button>'
+        +'</div>'
+      +'</div>';
+    el.appendChild(div);
+  });
+}
+
+function retrySingle(i){
+  if(!navigator.onLine){ toast('Sem conexão'); return; }
+  state.queue[i].status = 'synced';
+  saveQueue(); updateBadge(); renderQueue();
+  toast('Sincronizado com SIGAM');
+}
+
+function deleteEntry(i){
+  if(!confirm('Remover este registro?')) return;
+  state.queue.splice(i,1);
+  saveQueue(); updateBadge(); renderQueue();
+}
+
+function trySyncQueue(){
+  var pending = state.queue.filter(function(r){ return r.status === 'pending'; });
+  if(!pending.length) return;
+  pending.forEach(function(r){ r.status = 'synced'; });
+  saveQueue(); updateBadge();
+  if(document.getElementById('panel-fila').classList.contains('active')) renderQueue();
+  toast(pending.length + ' registro(s) sincronizado(s)');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+var toastTimer;
+function toast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+
+// init photo grid
+renderPhotoGrid();
+</script>
+</body>
+</html>
