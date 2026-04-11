@@ -79,6 +79,7 @@
     border-color: var(--green); box-shadow: 0 0 0 3px rgba(26,107,60,.1);
   }
   .field textarea { resize: vertical; min-height: 72px; }
+  .field input[readonly] { background: #f0f0ee; color: #6a7788; }
 
   /* ROW */
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
@@ -86,9 +87,9 @@
   /* ID TABS */
   .id-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .9rem; }
   .id-tab {
-    padding: 6px 12px; border-radius: 20px;
+    padding: 6px 14px; border-radius: 20px;
     border: 1px solid var(--border);
-    background: var(--card); font-size: 12px; font-weight: 500;
+    background: var(--card); font-size: 13px; font-weight: 500;
     cursor: pointer; transition: all .15s; color: #5a6778;
     user-select: none;
   }
@@ -98,21 +99,45 @@
   .id-panel { display: none; }
   .id-panel.active { display: block; }
 
+  /* SEARCH INPUT (ID preload) */
+  .id-search-wrap { position: relative; }
+  .id-search-wrap input { padding-right: 2.5rem; }
+  .id-clear {
+    position: absolute; right: .6rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: #8a95a3; font-size: 16px;
+    cursor: pointer; padding: 0 2px; line-height: 1;
+  }
+  .id-suggestions {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; z-index: 50; max-height: 200px; overflow-y: auto;
+    box-shadow: 0 4px 16px rgba(10,22,40,.12);
+    display: none;
+  }
+  .id-suggestions.open { display: block; }
+  .id-suggestion-item {
+    padding: .55rem .75rem; font-size: 13px; cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+  .id-suggestion-item:last-child { border-bottom: none; }
+  .id-suggestion-item:hover { background: var(--surface); }
+  .id-suggestion-item .id-num { font-weight: 600; color: var(--navy); }
+  .id-suggestion-item .id-meta { font-size: 11px; color: #8a95a3; margin-left: 6px; }
+
   /* GPS */
   .gps-row { display: flex; gap: .5rem; align-items: center; }
-  .gps-row input { flex: 1; }
+  .gps-row input { flex: 1; min-width: 0; }
   .btn-gps {
     padding: .5rem .85rem; border-radius: 8px;
     background: var(--navy); color: #fff; border: none;
     font-size: 12px; font-weight: 600; cursor: pointer;
     white-space: nowrap; transition: opacity .15s;
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Outfit', sans-serif; flex-shrink: 0;
   }
   .btn-gps:disabled { opacity: .5; cursor: default; }
 
   /* PHOTOS */
   .photo-slots { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-  .photo-slot { }
   .photo-slot label { display: block; font-size: 12px; font-weight: 600; color: #5a6778; margin-bottom: 4px; }
   .photo-slot-inner {
     border: 1.5px dashed var(--border);
@@ -122,32 +147,33 @@
     align-items: center; justify-content: center;
     gap: 6px; cursor: pointer; overflow: hidden;
     transition: border-color .15s;
+    -webkit-tap-highlight-color: transparent;
   }
-  .photo-slot-inner:hover { border-color: var(--green); }
-  .photo-slot-inner input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
+  .photo-slot-inner:active { border-color: var(--green); }
   .photo-slot-inner .slot-icon { font-size: 26px; color: #b0bec5; pointer-events: none; }
   .photo-slot-inner .slot-text { font-size: 10px; color: #8a95a3; pointer-events: none; text-align: center; padding: 0 8px; }
   .photo-slot-inner img {
     position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; border-radius: 9px;
+    object-fit: cover; border-radius: 9px; display: none;
   }
+  .photo-slot-inner.has-photo img { display: block; }
   .photo-slot-inner .remove-photo {
     position: absolute; top: 4px; right: 4px;
     background: rgba(0,0,0,.55); color: #fff;
-    border: none; border-radius: 50%; width: 22px; height: 22px;
-    font-size: 13px; line-height: 1; cursor: pointer;
+    border: none; border-radius: 50%; width: 24px; height: 24px;
+    font-size: 13px; cursor: pointer;
     display: none; align-items: center; justify-content: center;
     z-index: 2;
   }
   .photo-slot-inner.has-photo .remove-photo { display: flex; }
   .photo-slot-inner.has-photo .slot-icon,
   .photo-slot-inner.has-photo .slot-text { display: none; }
+  /* hidden file inputs */
+  .photo-file-input { display: none; }
 
-  /* CAUSA OUTRA */
-  #causa-outra-wrap { display: none; margin-top: 8px; }
-  #causa-outra-wrap.visible { display: block; }
+  /* CAUSA ESPECIFICAR */
+  #causa-otra-wrap { display: none; margin-top: 8px; }
+  #causa-otra-wrap.visible { display: block; }
 
   /* STATUS MESSAGE */
   .status-msg {
@@ -189,19 +215,8 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* RFID BADGE */
-  .rfid-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: #e8f5e9; color: var(--green);
-    border: 1px solid rgba(26,107,60,.2);
-    border-radius: 8px; padding: .5rem .75rem;
-    font-size: 13px; font-weight: 500;
-  }
-
-  /* RESPONSIVE */
   @media (max-width: 400px) {
     .row { grid-template-columns: 1fr; }
-    .photo-slots { grid-template-columns: 1fr 1fr; }
   }
 </style>
 </head>
@@ -251,27 +266,32 @@
   <div class="section-label">Identificación del animal</div>
 
   <div class="id-tabs">
-    <div class="id-tab active" data-tab="manual">Manual</div>
-    <div class="id-tab" data-tab="rfid">RFID</div>
+    <div class="id-tab active" data-tab="manual">N° manejo</div>
+    <div class="id-tab" data-tab="rfid">RFID / EID</div>
     <div class="id-tab" data-tab="foto">Foto botón</div>
     <div class="id-tab" data-tab="sinid">Sin ID</div>
   </div>
 
-  <!-- Manual -->
+  <!-- N° manejo (manual con preload desde Supabase) -->
   <div class="id-panel active" id="panel-manual">
     <div class="field">
-      <label for="caravana-manual">N° caravana / botón *</label>
-      <input type="text" id="caravana-manual" placeholder="Ej: 1234" inputmode="text" autocomplete="off">
+      <label for="num-manejo">N° de manejo *</label>
+      <div class="id-search-wrap">
+        <input type="text" id="num-manejo" placeholder="Ingresar número..." inputmode="numeric" autocomplete="off">
+        <button class="id-clear" id="num-manejo-clear" type="button" style="display:none">✕</button>
+        <div class="id-suggestions" id="id-suggestions"></div>
+      </div>
+      <div id="id-selected-info" style="margin-top:6px;font-size:12px;color:#1a6b3c;display:none;"></div>
     </div>
   </div>
 
-  <!-- RFID -->
+  <!-- RFID / EID -->
   <div class="id-panel" id="panel-rfid">
     <div class="field">
-      <label>Lectura RFID</label>
+      <label for="caravana-rfid">EID (código RFID) *</label>
       <div style="display:flex;gap:.5rem;align-items:flex-start;">
         <input type="text" id="caravana-rfid" placeholder="Escanear o ingresar EID..." style="flex:1">
-        <button class="btn-gps" id="btn-rfid-scan" style="margin-top:0">📡 Escanear</button>
+        <button class="btn-gps" id="btn-rfid-scan" style="flex-shrink:0">📡 Escanear</button>
       </div>
       <div id="rfid-status" style="margin-top:6px;font-size:12px;color:#8a95a3;"></div>
     </div>
@@ -282,16 +302,16 @@
     <div class="field">
       <label>Foto del botón / caravana</label>
       <div class="photo-slot-inner" id="slot-boton" style="max-width:180px;aspect-ratio:1;">
-        <input type="file" accept="image/*" capture="environment" id="file-boton">
         <div class="slot-icon">📷</div>
-        <div class="slot-text">Foto botón</div>
+        <div class="slot-text">Tocar para fotografiar</div>
         <img id="preview-boton" src="" alt="">
         <button class="remove-photo" id="rm-boton" type="button">✕</button>
       </div>
+      <input class="photo-file-input" type="file" accept="image/*" capture="environment" id="file-boton">
     </div>
     <div class="field">
       <label for="caravana-foto">N° leído en foto (opcional)</label>
-      <input type="text" id="caravana-foto" placeholder="Si puede leerlo..." inputmode="text">
+      <input type="text" id="caravana-foto" placeholder="Si puede leerlo..." inputmode="numeric">
     </div>
   </div>
 
@@ -299,12 +319,12 @@
   <div class="id-panel" id="panel-sinid">
     <div class="field">
       <label for="sinid-desc">Descripción del animal *</label>
-      <input type="text" id="sinid-desc" placeholder="Ej: vaca negra, aprox. 3 años" autocomplete="off">
+      <input type="text" id="sinid-desc" placeholder="Ej: vaca blanca, pasto E3" autocomplete="off">
     </div>
   </div>
 
   <!-- CATEGORIA -->
-  <div class="section-label">Categoría y causa</div>
+  <div class="section-label">Categoría</div>
 
   <div class="row">
     <div class="field">
@@ -330,23 +350,78 @@
     </div>
   </div>
 
+  <!-- CAUSA DE MUERTE -->
+  <div class="section-label">Causa de muerte</div>
+
   <div class="field">
-    <label for="causa">Causa de muerte *</label>
+    <label for="causa">Causa *</label>
     <select id="causa">
       <option value="">Seleccionar...</option>
-      <option>Enfermedad</option>
-      <option>Accidente</option>
-      <option>Predador</option>
-      <option>Parto</option>
-      <option>Causa desconocida</option>
-      <option>Otra</option>
+
+      <optgroup label="Enfermedades infecciosas">
+        <option>Clostridiosis (carbunclo / edema maligno)</option>
+        <option>Enterotoxemia clostridial</option>
+        <option>Brucelosis</option>
+        <option>Leptospirosis</option>
+        <option>Rabia bovina (derriengue)</option>
+        <option>Fiebre aftosa</option>
+        <option>Septicemia / infección bacteriana</option>
+      </optgroup>
+
+      <optgroup label="Hemoparásitos">
+        <option>Babesiosis (tristeza bovina)</option>
+        <option>Anaplasmosis</option>
+        <option>Tripanosomiasis (mal de caderas)</option>
+        <option>Hemoparásito no identificado</option>
+      </optgroup>
+
+      <optgroup label="Enfermedades respiratorias">
+        <option>Neumonía / bronconeumonía</option>
+        <option>IBR (rinotraqueítis infecciosa bovina)</option>
+        <option>Pleuroneumonía</option>
+      </optgroup>
+
+      <optgroup label="Enfermedades digestivas">
+        <option>Timpanismo agudo</option>
+        <option>Diarrea neonatal</option>
+        <option>Enteritis</option>
+        <option>Acidosis ruminal</option>
+        <option>Obstrucción digestiva</option>
+      </optgroup>
+
+      <optgroup label="Intoxicaciones y plantas tóxicas">
+        <option>Ofidismo (víbora)</option>
+        <option>Intoxicación por planta tóxica</option>
+        <option>Micotoxicosis (hongos en pasturas)</option>
+        <option>Intoxicación mineral (cobre, nitratos)</option>
+        <option>Intoxicación química / agroquímico</option>
+      </optgroup>
+
+      <optgroup label="Causas físicas / obstétricas">
+        <option>Distocía / parto difícil</option>
+        <option>Prolapso uterino</option>
+        <option>Trauma / accidente</option>
+        <option>Ahogamiento</option>
+        <option>Golpe de calor</option>
+      </optgroup>
+
+      <optgroup label="Depredadores">
+        <option>Depredador (jaguar / puma)</option>
+        <option>Perros cimarrones</option>
+        <option>Ataque de caranchos / buitres</option>
+      </optgroup>
+
+      <optgroup label="Otras">
+        <option>Causa desconocida</option>
+        <option>Otra (especificar)</option>
+      </optgroup>
     </select>
   </div>
 
-  <div id="causa-outra-wrap">
+  <div id="causa-otra-wrap">
     <div class="field">
-      <label for="causa-outra">Especificar causa *</label>
-      <input type="text" id="causa-outra" placeholder="Describir la causa...">
+      <label for="causa-otra">Especificar causa *</label>
+      <input type="text" id="causa-otra" placeholder="Describir la causa...">
     </div>
   </div>
 
@@ -363,6 +438,11 @@
     <div id="gps-status" class="status-msg" style="margin-top:6px;"></div>
   </div>
 
+  <div class="field">
+    <label for="potrero">Potrero / lote (opcional)</label>
+    <input type="text" id="potrero" placeholder="Ej: E3, Lote Sur..." autocomplete="off">
+  </div>
+
   <!-- FOTOS DEL ANIMAL -->
   <div class="section-label">Fotos del animal</div>
 
@@ -370,22 +450,22 @@
     <div class="photo-slot">
       <label>Botón / caravana</label>
       <div class="photo-slot-inner" id="slot-caravana">
-        <input type="file" accept="image/*" capture="environment" id="file-caravana">
         <div class="slot-icon">📷</div>
-        <div class="slot-text">Foto botón</div>
+        <div class="slot-text">Tocar para fotografiar</div>
         <img id="preview-caravana" src="" alt="">
         <button class="remove-photo" id="rm-caravana" type="button">✕</button>
       </div>
+      <input class="photo-file-input" type="file" accept="image/*" capture="environment" id="file-caravana">
     </div>
     <div class="photo-slot">
       <label>Animal completo</label>
       <div class="photo-slot-inner" id="slot-animal">
-        <input type="file" accept="image/*" capture="environment" id="file-animal">
         <div class="slot-icon">📷</div>
-        <div class="slot-text">Foto animal</div>
+        <div class="slot-text">Tocar para fotografiar</div>
         <img id="preview-animal" src="" alt="">
         <button class="remove-photo" id="rm-animal" type="button">✕</button>
       </div>
+      <input class="photo-file-input" type="file" accept="image/*" capture="environment" id="file-animal">
     </div>
   </div>
 
@@ -394,7 +474,7 @@
 
   <div class="field">
     <label for="obs">Notas adicionales</label>
-    <textarea id="obs" placeholder="Detalles del hallazgo, síntomas observados..."></textarea>
+    <textarea id="obs" placeholder="Detalles del hallazgo, síntomas observados, potrero exacto..."></textarea>
   </div>
 
   <div id="form-status" class="status-msg"></div>
@@ -409,72 +489,130 @@
 (function() {
   'use strict';
 
-  // ─── DATE / TIME AUTO-FILL ─────────────────────────────────────────────
+  // ─── DATE / TIME ──────────────────────────────────────────────────────
   function pad(n) { return String(n).padStart(2, '0'); }
   var now = new Date();
-  var dateStr = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
-  var timeStr = pad(now.getHours()) + ':' + pad(now.getMinutes());
-  document.getElementById('fecha').value = dateStr;
-  document.getElementById('hora').value = timeStr;
+  document.getElementById('fecha').value = now.getFullYear() + '-' + pad(now.getMonth()+1) + '-' + pad(now.getDate());
+  document.getElementById('hora').value = pad(now.getHours()) + ':' + pad(now.getMinutes());
 
-  // ─── ID TABS ───────────────────────────────────────────────────────────
-  var tabs = document.querySelectorAll('.id-tab');
-  var panels = document.querySelectorAll('.id-panel');
+  // ─── ID TABS ──────────────────────────────────────────────────────────
   var currentTab = 'manual';
-
-  tabs.forEach(function(tab) {
+  document.querySelectorAll('.id-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
-      var target = this.getAttribute('data-tab');
-      currentTab = target;
-      tabs.forEach(function(t) { t.classList.remove('active'); });
-      panels.forEach(function(p) { p.classList.remove('active'); });
+      currentTab = this.getAttribute('data-tab');
+      document.querySelectorAll('.id-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.id-panel').forEach(function(p) { p.classList.remove('active'); });
       this.classList.add('active');
-      var panel = document.getElementById('panel-' + target);
+      var panel = document.getElementById('panel-' + currentTab);
       if (panel) panel.classList.add('active');
     });
   });
 
-  // ─── RFID SCAN (simulated — real BLE/serial integration TBD) ──────────
+  // ─── ID PRELOAD (Supabase) ────────────────────────────────────────────
+  // Placeholder — will be wired to Supabase when connection details arrive.
+  // Animal records will have: { id_manejo, eid, categoria, estab, ... }
+  var animalCache = [];
+
+  function loadAnimals(estab) {
+    // TODO: fetch from Supabase filtered by estab
+    // fetch('/api/animals?estab=' + encodeURIComponent(estab))
+    //   .then(r => r.json()).then(function(d) { animalCache = d; });
+    animalCache = []; // empty until connected
+  }
+
+  document.getElementById('estab').addEventListener('change', function() {
+    loadAnimals(this.value);
+  });
+
+  // Search / autocomplete
+  var numInput = document.getElementById('num-manejo');
+  var clearBtn = document.getElementById('num-manejo-clear');
+  var suggestBox = document.getElementById('id-suggestions');
+  var selectedInfo = document.getElementById('id-selected-info');
+  var selectedAnimal = null;
+
+  numInput.addEventListener('input', function() {
+    var q = this.value.trim();
+    clearBtn.style.display = q ? 'block' : 'none';
+    selectedAnimal = null;
+    selectedInfo.style.display = 'none';
+    if (!q || animalCache.length === 0) { suggestBox.classList.remove('open'); return; }
+    var matches = animalCache.filter(function(a) {
+      return String(a.id_manejo).includes(q) || String(a.eid || '').includes(q);
+    }).slice(0, 8);
+    if (matches.length === 0) { suggestBox.classList.remove('open'); return; }
+    suggestBox.innerHTML = matches.map(function(a) {
+      return '<div class="id-suggestion-item" data-id="' + a.id_manejo + '">' +
+        '<span class="id-num">' + a.id_manejo + '</span>' +
+        '<span class="id-meta">' + (a.categoria || '') + ' · ' + (a.eid || '') + '</span>' +
+        '</div>';
+    }).join('');
+    suggestBox.classList.add('open');
+  });
+
+  suggestBox.addEventListener('click', function(e) {
+    var item = e.target.closest('.id-suggestion-item');
+    if (!item) return;
+    var idManejo = item.getAttribute('data-id');
+    selectedAnimal = animalCache.find(function(a) { return String(a.id_manejo) === idManejo; });
+    numInput.value = idManejo;
+    clearBtn.style.display = 'block';
+    suggestBox.classList.remove('open');
+    if (selectedAnimal) {
+      selectedInfo.textContent = '✓ ' + (selectedAnimal.categoria || '') + (selectedAnimal.eid ? ' · EID ' + selectedAnimal.eid : '');
+      selectedInfo.style.display = 'block';
+    }
+  });
+
+  clearBtn.addEventListener('click', function() {
+    numInput.value = '';
+    clearBtn.style.display = 'none';
+    suggestBox.classList.remove('open');
+    selectedInfo.style.display = 'none';
+    selectedAnimal = null;
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.id-search-wrap')) suggestBox.classList.remove('open');
+  });
+
+  // ─── RFID ─────────────────────────────────────────────────────────────
   document.getElementById('btn-rfid-scan').addEventListener('click', function() {
-    var statusEl = document.getElementById('rfid-status');
-    statusEl.textContent = 'Buscando lector RFID...';
-    // Placeholder: in a real app this would connect to a BLE RFID reader
+    var st = document.getElementById('rfid-status');
+    st.textContent = 'Buscando lector RFID...';
     setTimeout(function() {
-      statusEl.textContent = 'Lector no encontrado. Ingrese el EID manualmente.';
+      st.textContent = 'Lector no encontrado. Ingrese el EID manualmente.';
     }, 1500);
   });
 
-  // ─── CAUSA OUTRA ───────────────────────────────────────────────────────
+  // ─── CAUSA ────────────────────────────────────────────────────────────
   document.getElementById('causa').addEventListener('change', function() {
-    var wrap = document.getElementById('causa-outra-wrap');
-    if (this.value === 'Otra') {
+    var wrap = document.getElementById('causa-otra-wrap');
+    if (this.value === 'Otra (especificar)') {
       wrap.classList.add('visible');
     } else {
       wrap.classList.remove('visible');
     }
   });
 
-  // ─── GPS ───────────────────────────────────────────────────────────────
+  // ─── GPS ──────────────────────────────────────────────────────────────
   var btnGps = document.getElementById('btn-gps');
   var gpsStatus = document.getElementById('gps-status');
 
   btnGps.addEventListener('click', function() {
     if (!navigator.geolocation) {
-      showGpsStatus('error', 'Geolocalización no disponible en este dispositivo.');
-      return;
+      showGps('error', 'Geolocalización no disponible en este dispositivo.'); return;
     }
     btnGps.disabled = true;
     btnGps.textContent = '⏳ Capturando...';
-    showGpsStatus('info', 'Obteniendo ubicación GPS...');
-
+    showGps('info', 'Obteniendo ubicación GPS...');
     navigator.geolocation.getCurrentPosition(
       function(pos) {
         document.getElementById('gps-lat').value = pos.coords.latitude.toFixed(6);
         document.getElementById('gps-lon').value = pos.coords.longitude.toFixed(6);
         btnGps.disabled = false;
         btnGps.textContent = '✓ Recapturar';
-        var acc = Math.round(pos.coords.accuracy);
-        showGpsStatus('success', 'Ubicación obtenida. Precisión: ±' + acc + ' m');
+        showGps('success', 'Ubicación obtenida. Precisión: ±' + Math.round(pos.coords.accuracy) + ' m');
       },
       function(err) {
         btnGps.disabled = false;
@@ -484,100 +622,84 @@
           2: 'No se pudo obtener la posición. Verifique señal GPS.',
           3: 'Tiempo de espera agotado. Intente nuevamente.'
         };
-        showGpsStatus('error', msgs[err.code] || 'Error al obtener ubicación.');
+        showGps('error', msgs[err.code] || 'Error al obtener ibicación.');
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }
     );
   });
 
-  function showGpsStatus(type, msg) {
+  function showGps(type, msg) {
     gpsStatus.className = 'status-msg ' + type;
     gpsStatus.textContent = msg;
     gpsStatus.style.display = 'block';
   }
 
-  // ─── PHOTO SLOTS ───────────────────────────────────────────────────────
+  // ─── FOTOS (fix iOS camera) ───────────────────────────────────────────
+  // Use explicit fileInput.click() from touch/click on slot div.
+  // File input is display:none — this is the most reliable pattern on iOS Safari.
   function setupPhotoSlot(slotId, fileId, previewId, rmId) {
-    var slot = document.getElementById(slotId);
+    var slot     = document.getElementById(slotId);
     var fileInput = document.getElementById(fileId);
-    var preview = document.getElementById(previewId);
-    var rmBtn = document.getElementById(rmId);
+    var preview  = document.getElementById(previewId);
+    var rmBtn    = document.getElementById(rmId);
 
+    // Click slot → open camera/gallery
+    slot.addEventListener('click', function(e) {
+      if (e.target === rmBtn || rmBtn.contains(e.target)) return;
+      fileInput.click();
+    });
+
+    // Preview on file selected
     fileInput.addEventListener('change', function() {
       var file = this.files && this.files[0];
       if (!file) return;
       var reader = new FileReader();
-      reader.onload = function(e) {
-        preview.src = e.target.result;
+      reader.onload = function(ev) {
+        preview.src = ev.target.result;
         slot.classList.add('has-photo');
       };
       reader.readAsDataURL(file);
     });
 
+    // Remove photo
     rmBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      e.preventDefault();
       preview.src = '';
       fileInput.value = '';
       slot.classList.remove('has-photo');
     });
   }
 
-  // Photo slot in "foto botón" tab
-  setupPhotoSlot('slot-boton', 'file-boton', 'preview-boton', 'rm-boton');
-  // Photo slots in bottom section
+  setupPhotoSlot('slot-boton',    'file-boton',    'preview-boton',    'rm-boton');
   setupPhotoSlot('slot-caravana', 'file-caravana', 'preview-caravana', 'rm-caravana');
-  setupPhotoSlot('slot-animal', 'file-animal', 'preview-animal', 'rm-animal');
+  setupPhotoSlot('slot-animal',   'file-animal',   'preview-animal',   'rm-animal');
 
   // ─── SUBMIT ───────────────────────────────────────────────────────────
-  var btnSubmit = document.getElementById('btn-submit');
+  var btnSubmit  = document.getElementById('btn-submit');
   var formStatus = document.getElementById('form-status');
 
   btnSubmit.addEventListener('click', function() {
     formStatus.style.display = 'none';
     formStatus.className = 'status-msg';
-
     var errors = [];
 
-    // Establecimiento
-    if (!document.getElementById('estab').value) {
-      errors.push('Seleccione un establecimiento.');
-    }
+    if (!document.getElementById('estab').value)    errors.push('Seleccione un establecimiento.');
+    if (!document.getElementById('fecha').value)    errors.push('Ingrese la fecha.');
 
-    // Fecha
-    if (!document.getElementById('fecha').value) {
-      errors.push('Ingrese la fecha.');
-    }
-
-    // Identificación según pestaña activa
     if (currentTab === 'manual') {
-      if (!document.getElementById('caravana-manual').value.trim()) {
-        errors.push('Ingrese el número de caravana / botón.');
-      }
+      if (!document.getElementById('num-manejo').value.trim()) errors.push('Ingrese el número de manejo.');
     } else if (currentTab === 'rfid') {
-      if (!document.getElementById('caravana-rfid').value.trim()) {
-        errors.push('Ingrese o escanee el EID (RFID).');
-      }
+      if (!document.getElementById('caravana-rfid').value.trim()) errors.push('Ingrese o escanee el EID.');
     } else if (currentTab === 'sinid') {
-      if (!document.getElementById('sinid-desc').value.trim()) {
-        errors.push('Ingrese una descripción del animal.');
-      }
-    }
-    // foto tab: no mandatory field
-
-    // Categoría
-    if (!document.getElementById('categoria').value) {
-      errors.push('Seleccione la categoría del animal.');
+      if (!document.getElementById('sinid-desc').value.trim()) errors.push('Ingrese una descripción del animal.');
     }
 
-    // Causa
+    if (!document.getElementById('categoria').value) errors.push('Seleccione la categoría del animal.');
+
     var causa = document.getElementById('causa').value;
-    if (!causa) {
-      errors.push('Seleccione la causa de muerte.');
-    }
-    if (causa === 'Otra' && !document.getElementById('causa-outra').value.trim()) {
+    if (!causa) errors.push('Seleccione la causa de muerte.');
+    if (causa === 'Otra (especificar)' && !document.getElementById('causa-otra').value.trim())
       errors.push('Especifique la causa de muerte.');
-    }
 
     if (errors.length > 0) {
       formStatus.className = 'status-msg error';
@@ -587,72 +709,69 @@
       return;
     }
 
-    // Gather data
+    // Gather ID value
     var idValue = '';
-    if (currentTab === 'manual') idValue = document.getElementById('caravana-manual').value.trim();
-    else if (currentTab === 'rfid') idValue = document.getElementById('caravana-rfid').value.trim();
-    else if (currentTab === 'foto') idValue = document.getElementById('caravana-foto').value.trim() || '(foto)';
-    else if (currentTab === 'sinid') idValue = document.getElementById('sinid-desc').value.trim();
+    if (currentTab === 'manual')   idValue = document.getElementById('num-manejo').value.trim();
+    else if (currentTab === 'rfid')   idValue = document.getElementById('caravana-rfid').value.trim();
+    else if (currentTab === 'foto')   idValue = document.getElementById('caravana-foto').value.trim() || '(foto)';
+    else if (currentTab === 'sinid')  idValue = document.getElementById('sinid-desc').value.trim();
 
     var record = {
-      estab: document.getElementById('estab').value,
-      fecha: document.getElementById('fecha').value,
-      hora: document.getElementById('hora').value,
-      idMode: currentTab,
-      id: idValue,
+      estab:     document.getElementById('estab').value,
+      fecha:     document.getElementById('fecha').value,
+      hora:      document.getElementById('hora').value,
+      idMode:    currentTab,
+      id:        idValue,
+      animalRef: selectedAnimal || null,
       categoria: document.getElementById('categoria').value,
-      sexo: document.getElementById('sexo').value,
-      causa: causa === 'Otra' ? document.getElementById('causa-outra').value.trim() : causa,
-      lat: document.getElementById('gps-lat').value,
-      lon: document.getElementById('gps-lon').value,
-      obs: document.getElementById('obs').value.trim(),
-      ts: new Date().toISOString()
+      sexo:      document.getElementById('sexo').value,
+      causa:     causa === 'Otra (especificar)' ? document.getElementById('causa-otra').value.trim() : causa,
+      potrero:   document.getElementById('potrero').value.trim(),
+      lat:       document.getElementById('gps-lat').value,
+      lon:       document.getElementById('gps-lon').value,
+      obs:       document.getElementById('obs').value.trim(),
+      ts:        new Date().toISOString()
     };
 
-    // Save to localStorage as pending queue
-    var queue = [];
-    try { queue = JSON.parse(localStorage.getItem('mort_queue') || '[]'); } catch(e) {}
-    queue.push(record);
-    try { localStorage.setItem('mort_queue', JSON.stringify(queue)); } catch(e) {}
+    // Save locally
+    try {
+      var q = JSON.parse(localStorage.getItem('mort_queue') || '[]');
+      q.push(record);
+      localStorage.setItem('mort_queue', JSON.stringify(q));
+    } catch(e) {}
 
-    // Show loading state
     btnSubmit.disabled = true;
     btnSubmit.innerHTML = '<span class="spinner"></span>Registrando...';
 
-    // Simulate async submit (replace with real API call)
     setTimeout(function() {
       btnSubmit.disabled = false;
       btnSubmit.textContent = 'Registrar mortalidad';
       formStatus.className = 'status-msg success';
-      formStatus.textContent = '✓ Registro guardado correctamente. (' + record.estab + ' — ' + record.fecha + ')';
+      formStatus.textContent = '✓ Registro guardado. (' + record.estab + ' — ' + record.fecha + ')';
       formStatus.style.display = 'block';
       formStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-      // Clear form (except estab + fecha)
+      // Clear (keep estab + fecha)
       var savedEstab = document.getElementById('estab').value;
-      document.getElementById('caravana-manual').value = '';
-      document.getElementById('caravana-rfid').value = '';
-      document.getElementById('caravana-foto').value = '';
-      document.getElementById('sinid-desc').value = '';
-      document.getElementById('categoria').value = '';
-      document.getElementById('sexo').value = '';
-      document.getElementById('causa').value = '';
-      document.getElementById('causa-outra').value = '';
-      document.getElementById('causa-outra-wrap').classList.remove('visible');
+      ['num-manejo','caravana-rfid','caravana-foto','sinid-desc','categoria','sexo','causa','causa-otra','potrero','obs'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('causa-otra-wrap').classList.remove('visible');
       document.getElementById('gps-lat').value = '';
       document.getElementById('gps-lon').value = '';
       document.getElementById('gps-status').style.display = 'none';
-      document.getElementById('obs').value = '';
-      // Reset photos
+      clearBtn.style.display = 'none';
+      selectedInfo.style.display = 'none';
+      selectedAnimal = null;
       ['caravana','animal','boton'].forEach(function(k) {
-        var p = document.getElementById('preview-' + k);
-        var s = document.getElementById('slot-' + k);
-        var f = document.getElementById('file-' + k);
+        var p = document.getElementById('preview-'+k);
+        var s = document.getElementById('slot-'+k);
+        var f = document.getElementById('file-'+k);
         if (p) p.src = '';
         if (s) s.classList.remove('has-photo');
         if (f) f.value = '';
       });
-      // Restore estab
       document.getElementById('estab').value = savedEstab;
     }, 900);
   });
