@@ -140,6 +140,7 @@
   .photo-slots { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
   .photo-slot label { display: block; font-size: 12px; font-weight: 600; color: #5a6778; margin-bottom: 4px; }
   .photo-slot-inner {
+    cursor: pointer;
     border: 1.5px dashed var(--border);
     border-radius: 10px; background: var(--card);
     aspect-ratio: 1; position: relative;
@@ -169,7 +170,12 @@
   .photo-slot-inner.has-photo .slot-icon,
   .photo-slot-inner.has-photo .slot-text { display: none; }
   /* hidden file inputs */
-  .photo-file-input { display: none; }
+  .photo-file-input {
+    position: absolute; top: 0; left: 0;
+    width: 1px; height: 1px;
+    opacity: 0; overflow: hidden;
+    pointer-events: none;
+  }
 
   /* CAUSA ESPECIFICAR */
   #causa-otra-wrap { display: none; margin-top: 8px; }
@@ -239,7 +245,16 @@
 
   <div class="field">
     <label for="estab">Establecimiento *</label>
-    <select id="estab"><option value="">Cargando...</option></select>
+    <select id="estab">
+        <option value="">Seleccionar...</option>
+        <option>Ypoti</option>
+        <option>Ypoti 2</option>
+        <option>Cerro Memby</option>
+        <option>Santa Clara</option>
+        <option>Lusipar</option>
+        <option>Santa Maria da Serra</option>
+        <option>Cielo Azul</option>
+      </select>
   </div>
 
   <div class="row">
@@ -257,10 +272,10 @@
   <div class="section-label">Identificación del animal</div>
 
   <div class="id-tabs">
-    <div class="id-tab active" data-tab="manual">N° manejo</div>
-    <div class="id-tab" data-tab="rfid">RFID / EID</div>
-    <div class="id-tab" data-tab="foto">Foto botón</div>
-    <div class="id-tab" data-tab="sinid">Sin ID</div>
+    <button type="button" class="id-tab active" data-tab="manual">N° manejo</button>
+    <button type="button" class="id-tab" data-tab="rfid">RFID / EID</button>
+    <button type="button" class="id-tab" data-tab="foto">Foto botón</button>
+    <button type="button" class="id-tab" data-tab="sinid">Sin ID</button>
   </div>
 
   <!-- N° manejo (manual con preload desde Supabase) -->
@@ -268,7 +283,7 @@
     <div class="field">
       <label for="num-manejo">N° de manejo *</label>
       <div class="id-search-wrap">
-        <input type="text" id="num-manejo" placeholder="Ingresar número..." inputmode="numeric" autocomplete="off">
+        <input type="text" id="num-manejo" placeholder="Ingresar nԙ�ero..." inputmode="numeric" autocomplete="off">
         <button class="id-clear" id="num-manejo-clear" type="button" style="display:none">✕</button>
         <div class="id-suggestions" id="id-suggestions"></div>
       </div>
@@ -280,33 +295,44 @@
   <div class="id-panel" id="panel-rfid">
     <div class="field">
       <label for="caravana-rfid">EID (código RFID) *</label>
-      <div style="display:flex;gap:.5rem;">
-        <input type="text" id="caravana-rfid" placeholder="EID de 15 dígitos..." inputmode="numeric" style="flex:1;">
-        <button class="btn-gps" id="btn-rfid-scan" type="button">📺</button>
+      <div style="display:flex;gap:.5rem;align-items:flex-start;">
+        <input type="text" id="caravana-rfid" placeholder="Escanear o ingresar EID..." style="flex:1">
+        <button class="btn-gps" id="btn-rfid-scan" style="flex-shrink:0">📡 Escanear</button>
       </div>
-      <div id="rfid-status" style="font-size:12px;color:#8a95a3;margin-top:4px;"></div>
+      <div id="rfid-status" style="margin-top:6px;font-size:12px;color:#8a95a3;"></div>
     </div>
   </div>
 
-  <!-- FOTO BOTÓN -->
+  <!-- Foto botón -->
   <div class="id-panel" id="panel-foto">
     <div class="field">
-      <label for="caravana-foto">Número del botón (desdpvés=)</label>
-      <input type="text" id="caravana-foto" placeholder="Si logra leerlo...">
+      <label>Foto del botón / caravana</label>
+      <div class="photo-slot-inner" id="slot-boton" style="max-width:180px;aspect-ratio:1;">
+        <div class="slot-icon">📷</div>
+        <div class="slot-text">Tocar para fotografiar</div>
+        <img id="preview-boton" src="" alt="">
+        <button class="remove-photo" id="rm-boton" type="button">✕</button>
+      </div>
+      <input class="photo-file-input" type="file" accept="image/*" capture="environment" id="file-boton">
+    </div>
+    <div class="field">
+      <label for="caravana-foto">N° leído en foto (opcional)</label>
+      <input type="text" id="caravana-foto" placeholder="Si puede leerlo..." inputmode="numeric">
     </div>
   </div>
 
-  <!-- SIN ID -->
+  <!-- Sin ID -->
   <div class="id-panel" id="panel-sinid">
     <div class="field">
       <label for="sinid-desc">Descripción del animal *</label>
-      <input type="text" id="sinid-desc" placeholder="Ej: novillo negro, potrero E3...">
+      <input type="text" id="sinid-desc" placeholder="Ej: vaca blanca, pasto E3" autocomplete="off">
     </div>
   </div>
 
-  <!-- CATEGORIA + SEXO -->
-  <div class="section-label">Categoría / sexo</div>
-    <div class="row">
+  <!-- CATEGORIA -->
+  <div class="section-label">Categoría</div>
+
+  <div class="row">
     <div class="field">
       <label for="categoria">Categoría *</label>
       <select id="categoria">
@@ -334,12 +360,30 @@
   <div class="section-label">Causa de muerte</div>
 
   <div class="field">
-    <select id="causa">�sito no identificado</option>
+    <label for="causa">Causa *</label>
+    <select id="causa">
+      <option value="">Seleccionar...</option>
+
+      <optgroup label="Enfermedades infecciosas">
+        <option>Clostridiosis (carbunclo / edema maligno)</option>
+        <option>Enterotoxemia clostridial</option>
+        <option>Brucelosis</option>
+        <option>Leptospirosis</option>
+        <option>Rabia bovina (derriengue)</option>
+        <option>Fiebre aftosa</option>
+        <option>Septicemia / infección bacteriana</option>
+      </optgroup>
+
+      <optgroup label="Hemoparásitos">
+        <option>Babesiosis (tristeza bovina)</option>
+        <option>Anaplasmosis</option>
+        <option>Tripanosomiasis (mal de caderas)</option>
+        <option>Hemoparásito no identificado</option>
       </optgroup>
 
       <optgroup label="Enfermedades respiratorias">
         <option>Neumonía / bronconeumonía</option>
-        <option>IBR ptraqueítis infecciosa bovina)</option>
+        <option>IBR (rinotraqueítis infecciosa bovina)</option>
         <option>Pleuroneumonía</option>
       </optgroup>
 
@@ -448,10 +492,10 @@
 </div>
 
 <script>
-(inunction() {
+(function() {
   'use strict';
 
-  // ─── SUPABASE ──────────────────────────────────────────────────────────────────
+  // ─── SUPABASE ─────────────────────────────────────────────────────────
   var SUPABASE_URL = 'https://ebvethperccycxpaksrr.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_ppE6aC9Xy7XUoHxfjeG3iw_PpHnLjLW';
   var REST    = SUPABASE_URL + '/rest/v1';
@@ -459,7 +503,7 @@
   var BUCKET  = 'mortalidade-fotos';
 
   function supaH(extra) {
-    var h = { 'apikey': SUPABASE_KEY, 'Authori   var h = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+    var h = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
     if (extra) Object.assign(h, extra);
     return h;
   }
@@ -497,7 +541,9 @@
   fetch(REST + '/establishments?select=id,name&active=eq.true&order=name', { headers: supaH() })
     .then(function(r) { return r.json(); })
     .then(function(rows) {
+      if (!rows || !rows.length) return; // keep static fallback if empty
       var sel = document.getElementById('estab');
+      var saved = sel.value;
       sel.innerHTML = '<option value="">Seleccionar...</option>';
       rows.forEach(function(e) {
         _establishmentMap[e.name] = e.id;
@@ -506,14 +552,9 @@
         opt.textContent = e.name;
         sel.appendChild(opt);
       });
+      if (saved) sel.value = saved;
     })
-    .catch(function() {
-      // Fallback estático si no hay red
-      var sel = document.getElementById('estab');
-      sel.innerHTML = '<option value="">Seleccionar...</option>' +
-        ['Ypoti','Ypoti 2','Cerro Memby','Santa Clara','Lusipar','Santa Maria da Serra','Cielo Azul']
-        .map(function(n){ return '<option>'+n+'</option>'; }).join('');
-    });
+    .catch(function() { /* keep static fallback already loaded */ });
 
   // ─── ID TABS ──────────────────────────────────────────────────────────
   var currentTab = 'manual';
