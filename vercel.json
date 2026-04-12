@@ -1,34 +1,5 @@
 {
-  "version": 2,
-  "name": "sigam-tools",
-  "routes": [
-    {
-      "src": "/movimiento",
-      "dest": "/movimiento/index.html"
-    },
-    {
-      "src": "/movimiento/(.*)",
-      "dest": "/movimiento/index.html"
-    },
-    {
-      "src": "/checkpoint",
-      "dest": "/checkpoint/index.html"
-    },
-    {
-      "src": "/checkpoint/",
-      "dest": "/checkpoint/index.html"
-    },
-    {
-      "src": "/mortalidade",
-      "dest": "/mortalidade/index.html"
-    },
-    {
-      "src": "/mortalidade/(.*)",
-      "dest": "/mortalidade/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
-  ]
+    "redirects": [
+          { "source": "/(.*)", "destination": "https://sig-am.vercel.app/$1", "permanent": true }
+    ]
 }
