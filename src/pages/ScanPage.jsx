@@ -8,6 +8,21 @@ import { Button } from '../components/ui/Button.jsx';
 import { Card, CardBody, CardHeader } from '../components/ui/Card.jsx';
 import { Input } from '../components/ui/Input.jsx';
 
+// Hard ceiling per network call so the "Guardando…" state cannot trap
+// the operator on a slow / dead cellular connection.
+const SAVE_STEP_TIMEOUT_MS = 30_000;
+
+function withTimeout(promise, label, ms = SAVE_STEP_TIMEOUT_MS) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`${label}: tiempo agotado tras ${Math.round(ms / 1000)}s. Revisá tu conexión.`)),
+      ms
+    );
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 export default function ScanPage() {
   const navigate = useNavigate();
   const { coords, error: geoError } = useGeolocation();
@@ -88,58 +103,66 @@ export default function ScanPage() {
         );
       }
 
-      const dimResults = await Promise.all(upserts);
+      const dimResults = await withTimeout(
+        Promise.all(upserts),
+        'Guardando establecimientos y propietarios'
+      );
       const dimErr = dimResults.find((r) => r.error);
       if (dimErr) {
         throw new Error(dimErr.error.message);
       }
 
       if (origen.establecimiento_codigo && origen.proprietario_codigo) {
-        const { error: linkOrigenErr } = await supabase
-          .from('establecimiento_proprietarios')
-          .upsert(
+        const { error: linkOrigenErr } = await withTimeout(
+          supabase.from('establecimiento_proprietarios').upsert(
             {
               establecimiento_codigo: origen.establecimiento_codigo,
               proprietario_codigo: origen.proprietario_codigo,
             },
             { onConflict: 'establecimiento_codigo,proprietario_codigo', ignoreDuplicates: true }
-          );
+          ),
+          'Guardando vínculo origen'
+        );
         if (linkOrigenErr) {
           throw new Error(`Error al guardar propietario del origen: ${linkOrigenErr.message}`);
         }
       }
       if (destino.establecimiento_codigo && destino.proprietario_codigo) {
-        const { error: linkDestinoErr } = await supabase
-          .from('establecimiento_proprietarios')
-          .upsert(
+        const { error: linkDestinoErr } = await withTimeout(
+          supabase.from('establecimiento_proprietarios').upsert(
             {
               establecimiento_codigo: destino.establecimiento_codigo,
               proprietario_codigo: destino.proprietario_codigo,
             },
             { onConflict: 'establecimiento_codigo,proprietario_codigo', ignoreDuplicates: true }
-          );
+          ),
+          'Guardando vínculo destino'
+        );
         if (linkDestinoErr) {
           throw new Error(`Error al guardar propietario del destino: ${linkDestinoErr.message}`);
         }
       }
 
-      const { error: guiaErr } = await supabase.from('guias').upsert(
-        {
-          guia_nro: parsed.guia_nro,
-          cota: parsed.cota,
-          fecha_emision: parsed.fecha_emision,
-          proprietario_origen_codigo: origen.proprietario_codigo,
-          establecimiento_origen_codigo: origen.establecimiento_codigo,
-          proprietario_destino_codigo: destino.proprietario_codigo,
-          establecimiento_destino_codigo: destino.establecimiento_codigo,
-          finalidad: parsed.finalidad,
-          composicion: parsed.composicion,
-          cantidad_total: parsed.cantidad_total,
-          qr_payload_bruto: parsed.raw,
-          escaneada_lat: coords?.lat ?? null,
-          escaneada_lng: coords?.lng ?? null,
-        },
-        { onConflict: 'guia_nro' }
+      const { error: guiaErr } = await withTimeout(
+        supabase.from('guias').upsert(
+          {
+            guia_nro: parsed.guia_nro,
+            cota: parsed.cota,
+            fecha_emision: parsed.fecha_emision,
+            proprietario_origen_codigo: origen.proprietario_codigo,
+            establecimiento_origen_codigo: origen.establecimiento_codigo,
+            proprietario_destino_codigo: destino.proprietario_codigo,
+            establecimiento_destino_codigo: destino.establecimiento_codigo,
+            finalidad: parsed.finalidad,
+            composicion: parsed.composicion,
+            cantidad_total: parsed.cantidad_total,
+            qr_payload_bruto: parsed.raw,
+            escaneada_lat: coords?.lat ?? null,
+            escaneada_lng: coords?.lng ?? null,
+          },
+          { onConflict: 'guia_nro' }
+        ),
+        'Guardando guía'
       );
 
       if (guiaErr) {
